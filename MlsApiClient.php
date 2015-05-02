@@ -47,9 +47,9 @@ class Search {
  */
 class MlsApiClient {
 	const URL 		= 'http://silverlightapi.timesharebrokersmls.com/tsbmlsws.asmx?wsdl';
-	const KEY 		= 'f53bbab34cb7461893799d04b0f2f465';
-	const MEMBER_ID = '1000459';
-	const MAIL_TO 	= 'michellehernandez2008@gmail.com';
+	const KEY 		= 'YOUR_KEY';
+	const MEMBER_ID = 'YOUR_MEMBER_ID';
+	const MAIL_TO 	= 'YOUR_EMAIL_ADDRESS';
 
 	private $soapClient;
 
