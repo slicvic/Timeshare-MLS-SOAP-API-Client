@@ -1,6 +1,6 @@
 # Timeshare MLS SOAP API Client
 
-An API client for the TimeshareBrokersMLS.com SOAP API.
+An API client for the [TimeshareBrokersMLS.com](http://timesharebrokersmls.com/) SOAP API.
 
 #### API URL
 
