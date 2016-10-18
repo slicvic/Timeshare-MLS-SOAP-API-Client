@@ -66,7 +66,7 @@ class MlsApiClient {
     private $apiMemberId;
 
     /**
-     * An instance of SoapClient.
+     * Instance of SoapClient.
      * @var SoapClient
      */
     private $soapClient;
