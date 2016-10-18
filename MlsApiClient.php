@@ -89,7 +89,7 @@ class MlsApiClient {
      * @param string $apiUrl
      * @throws Exception
      */
-    public function __construct(string $apiKey, string $apiMemberId, $apiUrl = 'http://silverlightapi.timesharebrokersmls.com/tsbmlsws.asmx?wsdl')
+    public function __construct(string $apiKey, string $apiMemberId, string $apiUrl = 'http://silverlightapi.timesharebrokersmls.com/tsbmlsws.asmx?wsdl')
     {
         $this->apiUrl = $apiUrl;
         $this->apiKey = $apiKey;
