@@ -42,7 +42,7 @@ class SearchParameters {
 }
 
 /**
- * MlsApiClient
+ * MLS SOAP API Client
  *
  * @author Victor Lantigua <vmlantigua@gmail.com>
  */
