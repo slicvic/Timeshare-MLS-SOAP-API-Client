@@ -42,7 +42,7 @@ class SearchParameters {
 }
 
 /**
- * MLS SOAP API Client
+ * MLS Timeshare SOAP API Client
  *
  * @author Victor Lantigua <vmlantigua@gmail.com>
  */
