@@ -84,6 +84,7 @@ class MlsApiClient {
 
     /**
      * Constructor.
+     * 
      * @param string $apiKey
      * @param string $apiMemberId
      * @param string $apiUrl
