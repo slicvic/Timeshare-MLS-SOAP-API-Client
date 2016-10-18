@@ -1,11 +1,11 @@
 <?php
 
 /**
- * Search
+ * Search Query Parameters
  *
  * @author Victor Lantigua <vmlantigua@gmail.com>
  */
-class Search {
+class SearchParameters {
     public $OwnershipUsage      = '';
     public $ResordCode          = '';
     public $Type                = '';
@@ -25,18 +25,19 @@ class Search {
     public $PriceHigh           = '';
 
     /**
-     * Returns a new Search object and initializes properties based on search criteria.
-     *
-     * @param   array   $criteria
-     * @return  Search
+     * Creates an instance of SearchParameters and initializes properties based on given criteria.
+     * @param  array $criteria
+     * @return SearchParameters
      */
-    public static function factory($criteria = array())
+    public static function factory(array $criteria = [])
     {
-        $search = new Search();
+        $instance = new SearchParameters();
+
         foreach($criteria as $name => $value) {
-            $search->$name = $value;
+            $instance->$name = $value;
         }
-        return $search;
+
+        return $instance;
     }
 }
 
@@ -46,130 +47,159 @@ class Search {
  * @author Victor Lantigua <vmlantigua@gmail.com>
  */
 class MlsApiClient {
-    const URL       = 'http://silverlightapi.timesharebrokersmls.com/tsbmlsws.asmx?wsdl';
-    const KEY       = 'YOUR_KEY';
-    const MEMBER_ID = 'YOUR_MEMBER_ID';
-    const MAIL_TO   = 'YOUR_EMAIL_ADDRESS';
+    /**
+     * API URL.
+     * @var string
+     */
+    private $apiUrl;
 
+    /**
+     * API key.
+     * @var string
+     */
+    private $apiKey;
+
+    /**
+     * API Member ID.
+     * @var string
+     */
+    private $apiMemberId;
+
+    /**
+     * An instance of SoapClient.
+     * @var SoapClient
+     */
     private $soapClient;
 
     /**
      * Converts a boolean string to 'Yes' or 'No'.
      *
-     * @param   string  $value
-     * @return  string
+     * @param string $value
+     * @return string
      */
-    public static function bool2Text($value)
+    public static function bool2Text(string $value)
     {
-        return ($value == 'True') ? 'Yes' : 'No';
+        return ($value === 'True') ? 'Yes' : 'No';
     }
 
     /**
      * Constructor.
+     * @param string $apiKey
+     * @param string $apiMemberId
+     * @param string $apiUrl
+     * @throws Exception
      */
-    public function __construct()
+    public function __construct(string $apiKey, string $apiMemberId, string $apiUrl = 'http://silverlightapi.timesharebrokersmls.com/tsbmlsws.asmx?wsdl')
     {
+        $this->apiUrl = $apiUrl;
+        $this->apiKey = $apiKey;
+        $this->apiMemberId = $apiMemberId;
+
         try {
-            $this->soapClient = new SoapClient(self::URL);
-        }
-        catch(Exception $e) {
-            echo 'Error' . $e->getMessage();
+            $this->soapClient = new SoapClient($this->apiUrl);
+        } catch(Exception $e) {
+            throw $e;
         }
     }
 
     /**
      * Gets properties grouped by resort name.
      *
-     * @param  array  $criteria
-     * @return array  [results[], total]
+     * @param  array $criteria
+     * @return array [results[], total]
+     * @throws Exception
      */
-    public function getProperties($criteria = array())
+    public function getProperties(array $criteria = [])
     {
         try {
-            $result = $this->soapClient->GetProperties(array(
-                'Search'    => Search::factory($criteria),
-                'Key'       => self::KEY,
-                'MemberID'  => self::MEMBER_ID
-            ));
+            $result = $this->soapClient->GetProperties([
+                'Search'    => SearchParameters::factory($criteria),
+                'Key'       => $this->apiKey,
+                'MemberID'  => $this->apiMemberId
+            ]);
 
-            if ( ! empty($result->GetPropertiesResult->SearchResults)) {
+            if (!empty($result->GetPropertiesResult->SearchResults)) {
                 $results = $result->GetPropertiesResult->SearchResults;
 
                 // Group by resort name
-                $resultsGrouped = array();
+                $groupedResults = [];
                 foreach($results as $listing) {
-                    $resultsGrouped[$listing->Resort][] = $listing;
+                    $groupedResults[$listing->Resort][] = $listing;
                 }
 
                 // Sort by key
-                ksort($resultsGrouped);
+                ksort($groupedResults);
 
-                return array($resultsGrouped, count($results));
+                return [$groupedResults, count($results)];
+            } else {
+                return [[], 0];
             }
+        } catch(Exception $e) {
+            throw $e;
         }
-        catch(Exception $e) {
-            echo 'Error' . $e->getMessage();
-        }
-
-        return array(array(), 0);
     }
 
     /**
      * Gets property details.
      *
-     * @param string $property_id
-     * @return NULL|stdClass
+     * @param string $propertyId
+     * @return null|stdClass
      */
-    public function getPropertyDetails($property_id)
+    public function getPropertyDetails(string $propertyId)
     {
-        $result = $this->soapClient->GetPropertyDetails(array(
-            'PropertyID' => (string) $property_id,
-            'Key'        => self::KEY
-        ));
+        $result = $this->soapClient->GetPropertyDetails([
+            'PropertyID' => $propertyId,
+            'Key'        => $this->apiKey
+        ]);
 
-        if ( ! empty($result->GetPropertyDetailsResult))
+        if (!empty($result->GetPropertyDetailsResult)) {
             return $result->GetPropertyDetailsResult;
+        }
 
-        return NULL;
+        return null;
     }
 
     /**
      * Requests more info about a property.
      *
-     * @param  array        $data
+     * @param array $info
+     * @param string $mailTo
      * @return bool
      */
-    public function requestInfo($data)
+    public function requestInfo(array $info, string $mailTo)
     {
-        $result = $this->soapClient->RequestInfo(array(
-            'Key'   => self::KEY,
-            'oInfo' => $data,
-            'MailTo' => self::MAIL_TO
-        ));
+        $result = $this->soapClient->RequestInfo([
+            'Key'   => $this->apiKey,
+            'oInfo' => $info,
+            'MailTo' => $mailTo
+        ]);
 
-        if (isset($result->RequestInfoResult))
+        if (isset($result->RequestInfoResult)) {
             return $result->RequestInfoResult;
+        }
 
-        return FALSE;
+        return false;
     }
 
     /**
      * Submits an offer for a property.
      *
-     * @param  array    $data
+     * @param array $offer
+     * @param string $mailTo
      * @return bool
      */
-    public function submitOffer($data)
+    public function submitOffer(array $offer, string $mailTo)
     {
-        $result = $this->soapClient->SubmitOffer(array(
-            'Key'    => self::KEY,
-            'oOffer' => $data,
-            'MailTo' => self::MAIL_TO
-        ));
+        $result = $this->soapClient->SubmitOffer([
+            'Key'    => $this->apiKey,
+            'oOffer' => $offer,
+            'MailTo' => $mailTo
+        ]);
 
-        if (isset($result->SubmitOfferResult))
+        if (isset($result->SubmitOfferResult)) {
             return $result->SubmitOfferResult;
+        }
 
-        return FALSE;
+        return false;
     }
 }
