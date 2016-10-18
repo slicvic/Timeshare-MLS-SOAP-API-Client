@@ -26,6 +26,7 @@ class SearchParameters {
 
     /**
      * Creates an instance of SearchParameters and initializes properties based on given criteria.
+     * 
      * @param  array $criteria
      * @return SearchParameters
      */
@@ -84,7 +85,7 @@ class MlsApiClient {
 
     /**
      * Constructor.
-     * 
+     *
      * @param string $apiKey
      * @param string $apiMemberId
      * @param string $apiUrl
